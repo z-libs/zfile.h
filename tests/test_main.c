@@ -1,16 +1,13 @@
+
 #include <stdio.h>
 #include <assert.h>
 #include <string.h>
 #include <stdlib.h>
 #include <stdbool.h>
 
-// 1. Define implementations
-#define ZSTR_IMPLEMENTATION
-#include "zstr.h"
 #define ZFILE_IMPLEMENTATION
 #include "zfile.h"
 
-// 2. Test Helpers
 #define TEST(name) printf("[TEST] %-35s", name);
 #define PASS() printf(" \033[0;32mPASS\033[0m\n")
 
@@ -18,7 +15,7 @@ void test_path_manipulation(void)
 {
     TEST("Path Join, Ext, Base, Dir");
 
-    // Join
+    // Join.
     zstr p1 = zfile_join("folder", "file.txt");
     zfile_normalize(&p1); 
     
@@ -26,18 +23,18 @@ void test_path_manipulation(void)
     size_t len = strlen(cstr);
     assert(len >= 8 && strcmp(cstr + len - 8, "file.txt") == 0);
 
-    // Ext
+    // Ext.
     zstr_view ext = zfile_ext("archive.tar.gz");
     assert(zstr_view_eq(ext, ".gz"));
     
     ext = zfile_ext("readme");
     assert(ext.len == 0);
 
-    // Base
+    // Base.
     zstr_view base = zfile_base("/var/log/syslog");
     assert(zstr_view_eq(base, "syslog"));
 
-    // Dir
+    // Dir.
     zstr_view dir = zfile_dir("/var/log/syslog");
     assert(zstr_view_eq(dir, "/var/log"));
 
@@ -53,21 +50,21 @@ void test_file_io(void)
     const char *data1 = "Hello";
     const char *data2 = " World";
 
-    // Write
+    // Write.
     assert(zfile_write_all(fname, data1, 5) == Z_OK);
     assert(zfile_exists(fname));
     assert(zfile_is_file(fname));
     assert(zfile_size(fname) == 5);
 
-    // Append
+    // Append.
     assert(zfile_append(fname, data2, 6) == Z_OK);
     assert(zfile_size(fname) == 11);
 
-    // Read
+    // Read.
     zstr content = zfile_read_all(fname);
     assert(strcmp(zstr_cstr(&content), "Hello World") == 0);
 
-    // Remove
+    // Remove.
     assert(zfile_remove(fname) == Z_OK);
     assert(!zfile_exists(fname));
 
@@ -82,12 +79,12 @@ void test_atomic_save(void)
     const char *fname = "test_atomic.txt";
     const char *data = "Important Data";
 
-    // Save atomically
+    // Save atomically.
     int res = zfile_save_atomic(fname, data, strlen(data));
     assert(res == Z_OK);
     assert(zfile_exists(fname));
 
-    // Verify content
+    // Verify content.
     zstr content = zfile_read_all(fname);
     assert(strcmp(zstr_cstr(&content), data) == 0);
 
@@ -106,8 +103,9 @@ void test_buffered_reader(void)
 
     int count = 0;
     
-    // Test the macro
-    ZFILE_FOR_EACH_LINE(fname, line) {
+    // Test the macro.
+    ZFILE_FOR_EACH_LINE(fname, line) 
+    {
         count++;
         if (count == 1) assert(zstr_view_eq(line, "Line 1"));
         if (count == 2) assert(zstr_view_eq(line, "Line 2"));
@@ -127,8 +125,9 @@ void test_directories(void)
     const char *sub = "test_dir/subdir";
     const char *file = "test_dir/file.bin";
 
-    // Recursive Mkdir
-    if (zfile_exists(root)) {
+    // Recursive Mkdir.
+    if (zfile_exists(root)) 
+    {
         // Simple cleanup attempt (only works if empty, just to be safe)
         // A real robust test would perform recursive delete here.
         // For now we rely on the test cleaning up after itself.
@@ -138,10 +137,10 @@ void test_directories(void)
     assert(zfile_is_dir(root));
     assert(zfile_is_dir(sub));
 
-    // Create a dummy file to find
+    // Create a dummy file to find.
     zfile_write_all(file, "x", 1);
 
-    // Iterate
+    // Iterate.
     zdir_iter *it = zdir_open(root);
     assert(it != NULL);
 
@@ -149,13 +148,16 @@ void test_directories(void)
     bool found_file = false;
     bool found_sub = false;
 
-    while (zdir_next(it, &entry)) {
-        if (strcmp(entry.name, "file.bin") == 0) {
-            // entry.type might be ZDIR_UNKNOWN on some filesystems (lazy stat)
+    while (zdir_next(it, &entry)) 
+    {
+        if (strcmp(entry.name, "file.bin") == 0) 
+        {
+            // entry.type might be ZDIR_UNKNOWN on some filesystems (lazy stat).
             assert(entry.type == ZDIR_FILE || entry.type == ZDIR_UNKNOWN);
             found_file = true;
         }
-        if (strcmp(entry.name, "subdir") == 0) {
+        if (strcmp(entry.name, "subdir") == 0) 
+        {
             assert(entry.type == ZDIR_DIR || entry.type == ZDIR_UNKNOWN);
             found_sub = true;
         }
@@ -165,9 +167,9 @@ void test_directories(void)
     assert(found_file);
     assert(found_sub);
 
-    // Cleanup
+    // Cleanup.
     zfile_remove(file);
-    // Note: rmdir logic is platform specific, standard 'remove' works on empty dirs
+    // Note: rmdir logic is platform specific, standard 'remove' works on empty dirs.
     remove("test_dir/subdir"); 
     remove("test_dir");
     

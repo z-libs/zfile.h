@@ -1,16 +1,13 @@
+
 #include <iostream>
 #include <string>
 #include <cassert>
 #include <vector>
 #include <algorithm>
 
-// Headers
-#define ZSTR_IMPLEMENTATION
-#include "zstr.h"
 #define ZFILE_IMPLEMENTATION
 #include "zfile.h"
 
-// Test Helpers
 #define TEST(name) printf("[TEST] %-40s", name);
 #define PASS() std::cout << "\033[0;32mPASS\033[0m\n";
 
@@ -20,23 +17,22 @@ void test_path_wrapper()
 
     z_file::path p("folder");
     
-    // Operator /
+    // Operator '/'.
     z_file::path full = p / "data" / "config.json";
     
-    // Convert to string to check
+    // Convert to string to check.
     std::string s = full.string().c_str();
     
-    // Check suffix (separator varies by OS)
+    // Check suffix (separator varies by OS).
     assert(s.find("config.json") != std::string::npos);
     assert(s.find("data") != std::string::npos);
 
-    // Extension
+    // Extension.
     auto ext = full.extension();
     
-    // FIX: Use .data() and .size() methods for the C++ view wrapper
     assert(std::string(ext.data(), ext.size()) == ".json");
 
-    // Existence (Should fail)
+    // Existence (should fail).
     assert(!full.exists());
 
     PASS();
@@ -46,12 +42,13 @@ void test_directory_iterator()
 {
     TEST("C++ Directory Iterator (Range-based)");
 
-    // Setup: Create a dir with 3 files
+    // Setup: Create a dir with 3 files.
     const char *dir = "cpp_test_dir";
     
-    // Ensure clean state
-    if (zfile_exists(dir)) {
-        // Simple cleanup if it exists and is empty/files only
+    // Ensure clean state.
+    if (zfile_exists(dir))
+    {
+        // Simple cleanup if it exists and is empty/files only.
         zfile_remove("cpp_test_dir/a.txt");
         zfile_remove("cpp_test_dir/b.log");
         zfile_remove("cpp_test_dir/c.bin");
@@ -65,19 +62,20 @@ void test_directory_iterator()
 
     std::vector<std::string> found;
 
-    // Range-based for loop
-    for (auto entry : z_file::dir_iterable(dir)) {
-        // Skip . and ..
+    // Range-based for loop.
+    for (auto entry : z_file::dir_iterable(dir)) 
+    {
+        // Skip '.' and '..'.
         if (entry.name[0] == '.') continue;
         found.push_back(entry.name);
     }
 
-    // Verify
+    // Verify.
     assert(found.size() == 3);
     assert(std::find(found.begin(), found.end(), "a.txt") != found.end());
     assert(std::find(found.begin(), found.end(), "b.log") != found.end());
     
-    // Cleanup
+    // Cleanup.
     zfile_remove("cpp_test_dir/a.txt");
     zfile_remove("cpp_test_dir/b.log");
     zfile_remove("cpp_test_dir/c.bin");
