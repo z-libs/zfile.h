@@ -1,0 +1,52 @@
+
+name: Build and Sync
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  schedule:
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Update z-core submodule
+        run: |
+          git submodule update --remote --merge
+          echo "Submodule updated to latest remote version."
+
+      - name: Build Library
+        run: make bundle
+
+      - name: Run Unit Tests
+        run: |
+          echo "Running C and C++ Test Suites..."
+          # Runs the 'test' target from your Makefile. 
+          # If it fails (non-zero exit), we print an error and exit.
+          make test || { echo "::error::Unit tests failed! Check the logs above for assertion errors."; exit 1; }
+
+      - name: Commit and Push changes
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "Auto-update: Bump z-core and regenerate zfile.h [skip ci]"
+          file_pattern: '.'
+
