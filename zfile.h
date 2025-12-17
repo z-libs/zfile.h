@@ -523,7 +523,7 @@ bool zfile_is_dir(const char *path)
     {
         return false;
     }
-    return (0 != s.st_mode & S_IFDIR);
+    return (0 != (s.st_mode & S_IFDIR));
 #   else
     if (0 != stat(path, &s))
     {
